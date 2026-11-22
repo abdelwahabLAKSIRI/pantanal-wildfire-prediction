@@ -1,0 +1,9 @@
+target,metric,period,model,baseline,with_hourly,with_hourly_wind,delta_with_hourly,delta_with_hourly_wind
+persists_t1,f1_macro,test_full,XGBoost,0.5608,0.59,0.6036,0.0292,0.0428
+persists_t1,f1_macro,test_full,RandomForest,0.568,0.5814,0.5827,0.0135,0.0147
+persists_t1,f1_macro,test_dry_season,XGBoost,0.5772,0.6044,0.6148,0.0273,0.0376
+persists_t1,f1_macro,test_dry_season,RandomForest,0.5443,0.5561,0.5577,0.0118,0.0134
+spreads_t1,pr_auc,test_full,XGBoost,0.3675,0.3854,0.3892,0.0179,0.0217
+spreads_t1,pr_auc,test_full,RandomForest,0.3254,0.345,0.3643,0.0197,0.0389
+spreads_t1,pr_auc,test_dry_season,XGBoost,0.3751,0.3865,0.3912,0.0114,0.0162
+spreads_t1,pr_auc,test_dry_season,RandomForest,0.3296,0.3521,0.3772,0.0225,0.0476

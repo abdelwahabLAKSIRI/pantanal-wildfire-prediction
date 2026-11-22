@@ -1,0 +1,31 @@
+# Data and download caches: not distributed (see README)
+hourly_model/data/
+goes_hourly_model/data/
+*.nc
+*.parquet
+
+# Inputs provided by the laboratory (not public)
+/serie_diaria_bloqueios_clima80_10.csv
+/SACZ_daily_series.csv
+/tabela_ml_*
+/results/
+
+# Credentials
+.cdsapirc
+.env
+
+# Python and Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.toc
+report/*.lof
+report/*.lot
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz

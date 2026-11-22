@@ -1,0 +1,5 @@
+target,model,baseline (daily),hourly block,hourly wind,XHWI
+persists_t1,RandomForest,0.297,0.593,0.109,0.0
+persists_t1,XGBoost,0.335,0.527,0.137,0.0
+spreads_t1,RandomForest,0.397,0.568,0.035,0.0
+spreads_t1,XGBoost,0.393,0.467,0.14,0.0
