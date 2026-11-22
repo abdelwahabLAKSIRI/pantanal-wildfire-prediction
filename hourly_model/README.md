@@ -4,8 +4,14 @@
 > ~24 h target, because the INPE product is one overpass per day. A genuinely
 > hourly *target* needs GOES-16 — see `../goes_hourly_model/`.
 
-An hourly-forcing version of the daily model (`../ml_persist_propaga_wind.ipynb`),
-restricted to the Pantanal.
+An hourly-forcing version of the laboratory's daily model
+(`ml_persist_propaga_wind.ipynb`), restricted to the Pantanal.
+
+> **Files not in this repository.** The laboratory's daily notebook and its
+> results (`../ml_persist_propaga_wind.ipynb`, `../results/`), the original 2024
+> hotspot file (`../fire_events_hourly_2024.csv`) and the three shared inputs
+> below were provided by LAMMOC/UFF and are not public. They are referred to here
+> by the paths they had in the original project.
 
 ## Layout
 
@@ -21,9 +27,10 @@ hourly_model/
 └── results/                           metrics, predictions, importances, figures
 ```
 
-Shared inputs stay in the parent project folder and are read from there:
+Shared inputs (from LAMMOC) go in the parent folder and are read from there:
 `xhwi_era5_hourly_2024.nc`, `serie_diaria_bloqueios_clima80_10.csv`,
-`SACZ_daily_series.csv`.
+`SACZ_daily_series.csv`. The table builder skips any that are missing, but the
+baseline feature list includes the blocking and SACZ columns.
 
 `download_era5_wind_pantanal.py` is the earlier wind-only version, kept because it
 produced `data/wind_era5_hourly_2024.nc`. For 2019–2024 use
@@ -397,12 +404,14 @@ overpass per day. That work lives in its own directory:
 See `goes_hourly_model/README.md`. In short: GOES-16 is geostationary, produces a
 fire mask every 10 minutes, and distinguishes "observed, no fire" from "not
 observed" — so an hourly target becomes estimable and a 0 label becomes a real
-observation. Validated on August 2024, with a model trained on the same month.
+observation. Validated against INPE on August 2024, then trained on all of 2024.
 
-The headline finding there is the mirror of the one here: at a **1 h** lead the
-fire's own state overwhelms everything and meteorology adds nothing measurable,
-whereas at the **~24 h** lead used in this directory the hourly wind forcing is
-the one block that clears the noise floor.
+The findings there complement the one here. At a **1 h** lead the fire's own
+state dominates: meteorology adds nothing measurable to persistence or to the
+ignition of new fires, but it does improve the forecast of fire spreading into
+adjacent 2 km ground (+0.012 PR-AUC, positive in 5 of 5 monthly folds,
+p = 0.020). At the **~24 h** lead used in this directory, hourly wind is the one
+block that clears the noise floor for persistence.
 
 ## Leaks fixed during construction
 

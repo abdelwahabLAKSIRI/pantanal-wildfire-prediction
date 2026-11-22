@@ -27,7 +27,9 @@ Shared inputs are read from elsewhere in the project and never copied:
 |---|---|
 | ERA5 hourly forcing | `../hourly_model/data/era5_hourly_2019_2024.nc` |
 | INPE hotspots (validation only) | `../hourly_model/data/` |
-| XHWI (defines the target grid) | `../xhwi_era5_hourly_2024.nc` |
+
+The 0.25° target grid (49 × 29 cells, 25°S–13°S, 60°W–53°W) is built from the
+domain bounds in `build_goes_hourly.py`, so no laboratory file is needed.
 
 
 `../hourly_model/` uses INPE's reference-satellite product, where the target is
@@ -307,7 +309,7 @@ physical checks:
 
 | check | result | verdict |
 |---|---|---|
-| implied front speed | 28 km in 1 h = **7.7 m/s** | impossible (crown fires reach 1-3 m/s) |
+| implied front speed | 28 km in 1 h = **7.7 m/s** centre to centre | implausible as typical (fronts usually advance well under 1 m/s); suggestive only, since a fire near a cell edge can cross into the next cell much sooner |
 | directional preference | 25.4% within 45 deg of downwind | **25% = random**; no signal at all |
 | dependence on source fire power | 0.14 -> 0.23 across FRP quintiles, levelling off (persistence ran 0.45 -> 0.97) | weak; an earlier version of the table gave a flat 0.20 / 0.17 / 0.23 / 0.25 / 0.24 |
 
@@ -426,29 +428,40 @@ they cannot creep back in.
 ## Scaling to 2020–2024
 
 At 1 scan/hour: 60 months × 744 files ≈ **44,600 files, ~76 GB transferred**,
-~4 MB/month retained. At the observed rate that is roughly 25 hours of wall
-clock, and it parallelises cleanly by month.
+~4 MB/month retained. Observed rates varied: the first single-month test took
+25 minutes, while all of 2024 later took 52 minutes with 8 parallel workers. Five
+years is therefore somewhere between about 4 hours and a day of wall clock,
+mostly limited by the connection, and it parallelises cleanly by month.
 
 Using all 6 scans/hour would catch fires shorter than an hour, at 6× the transfer
 (~455 GB). Worth measuring on one month before committing: rerun with
 `--scans-per-hour 6` and compare prevalence against the 1/hour table to see how
 much is being missed.
 
-## Open design questions for the hourly model
+## Results files
 
-The target is now `fire_t` per (cell, hour), which is a different modelling
-problem from the current one — grid-cell occupancy rather than event-level
-transition. Before building it:
+| file | experiment |
+|---|---|
+| `goes_vs_inpe_match_202408.csv`, `goes_diurnal_202408.csv` | August 2024 validation against INPE (`validate_goes_vs_inpe.py`) |
+| `holdout_*.csv`, `rolling_origin.csv` | 28 km persistence and spread models, full year (`train_goes_hourly.py`) |
+| `spread2km_*.csv` | 2 km spread model (`train_goes_split.py`) |
+| `ignition_*.csv` | ignition model (`train_goes_split.py`) |
+| `figures/` | presentation figures (`make_*_figures.py`) |
 
-- **Target definition.** Fire *presence* at t+1h, or *new ignition* (fire at t+1h
-  where there was none at t), or *persistence* (fire at t+1h given fire at t)?
-  These are three different questions and the third is closest to the current
-  model.
-- **Negative sampling.** At 0.0399 prevalence, 96% of rows are negative and most
-  are cells that never burn all month. Restricting to cells with any fire in a
-  surrounding window, or to a fire-season subset, would concentrate the signal.
-- **Autocorrelation.** Fire at t and t+1h in the same cell is strongly correlated,
-  so a naive split would leak badly. Splitting must be by time block, and probably
-  with spatial blocking too.
+In each model's files, `*_metrics.csv` holds the tuned models' test scores,
+`*_effect_size.csv` the fixed-hyperparameter runs per seed, `*_rolling.csv` (or
+`rolling_origin.csv`) the monthly forecasts, and `*_importance.csv` the feature
+importances.
+
+## Still open
+
+- **More years.** Everything here is 2024 only (see *Scaling to 2020–2024*).
+- **Dependence between rows.** Many rows are pixels or cells of the same fire in
+  the same hour, so the effective number of independent test cases is far smaller
+  than the row count. The σ values in the effect-size tables measure seed-to-seed
+  model noise, not this sampling uncertainty; the paired test across monthly
+  folds is the better guide to significance.
 - **Confidence categories.** `--high-confidence-only` restricts to good/saturated
-  pixels; the low/medium-probability categories are noisier but more numerous.
+  pixels; the low/medium-probability categories are noisier but more numerous,
+  and the effect of the choice has not been measured.
+- **Scan frequency.** One scan per hour of six; see *Scaling to 2020–2024*.

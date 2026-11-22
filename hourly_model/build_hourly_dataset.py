@@ -556,7 +556,8 @@ def main() -> int:
         if not f.exists():
             raise SystemExit(
                 f"missing required input: {f.name}\n"
-                "  fire events : python build_fire_events_hourly.py --biome Pantanal\n"
+                "  fire events : python build_fire_events_hourly.py --years 2019-2024 "
+                "--states \"MATO GROSSO DO SUL,MATO GROSSO\"\n"
                 "  ERA5 fields : python download_era5_pantanal.py"
             )
 

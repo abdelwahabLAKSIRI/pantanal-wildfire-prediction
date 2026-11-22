@@ -39,6 +39,9 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc}
 \usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Predicting Wildfire Persistence, Spread and Ignition in the Pantanal with Satellite Data and Machine Learning},
+            pdfauthor={Abdelwahab LAKSIRI},
+            pdfsubject={Mobility internship report, LAMMOC, Universidade Federal Fluminense}}
 
 \setstretch{1.12}
 \setlength{\parskip}{0.45em}
@@ -148,8 +151,8 @@ and what the weather really controls\par}
 I would like to thank my supervisor, \textbf{Prof.\ Marcio CATALDI}, for
 welcoming me into LAMMOC, for proposing this subject, and for pushing the work
 towards the question that turned out to matter most: \emph{show me the model and
-show me the scores}. His meteorological perspective shaped how every result in
-this report is interpreted.
+show me the scores}. Prof.\ CATALDI's meteorological perspective shaped how every
+result in this report is interpreted.
 
 I thank the members of \textbf{LAMMOC} and the \textbf{Universidade Federal
 Fluminense} for their hospitality and for the data they made available, in
@@ -1159,9 +1162,12 @@ never have shown up in the scores.
 Three physical checks were applied to the spread target of Stage 2:
 
 \begin{enumerate}
-  \item \textbf{Speed.} Reaching the next 28\,km cell within one hour requires a
-        fire front moving at about \textbf{7.7\,m/s} ($\approx$28\,km/h). Even the
-        fastest crown fires rarely exceed 1--3\,m/s.
+  \item \textbf{Speed.} Moving from the centre of one 28\,km cell to the centre
+        of the next within one hour requires a fire front moving at about
+        \textbf{7.7\,m/s} ($\approx$28\,km/h). Fire fronts usually advance well
+        under 1\,m/s, and only extreme wind-driven grass fires approach several
+        metres per second. A fire near a cell edge can cross into the next cell
+        much sooner, so this check is suggestive rather than conclusive on its own.
   \item \textbf{Direction.} If fire truly spreads, it should favour the
         downwind direction. Only 25.4\% of \enquote{spread} events were within
         $45^\circ$ of downwind -- exactly the 25\% expected at random.
@@ -1227,7 +1233,7 @@ run if one of them appears among the features.
 \toprule
 Check & Old target (28\,km) & New target (2\,km) \\
 \midrule
-Implied front speed & 7.7\,m/s (impossible) & \textbf{0.56\,m/s} (physical) \\
+Implied front speed & 7.7\,m/s (implausible) & \textbf{0.56\,m/s} (plausible) \\
 Spread within $45^\circ$ of downwind & 25.4\% (= random) & \textbf{28.6\%} ($z=25.6$) \\
 Spread rate by fire power$^\ast$ & 0.14 $\rightarrow$ 0.23, levels off & \textbf{0.109 $\rightarrow$ 0.273}, rising \\
 Spread rate by wind speed$^\ast$ & -- & \textbf{0.133 $\rightarrow$ 0.263}, rising \\
@@ -1238,7 +1244,7 @@ Spread rate by wind speed$^\ast$ & -- & \textbf{0.133 $\rightarrow$ 0.263}, risi
 
 \begin{plainbox}
 Downwind preference of 28.6\% against 25\% may look small, but with 93{,}017
-events it is 25 standard errors away from chance -- impossible to obtain by luck.
+events it is 25 standard errors away from chance -- far too large to be luck.
 Many spread events are driven by things other than wind (slope, fuel, the shape
 of the fire), so a modest but systematic preference is what physics predicts at
 this scale.
@@ -1441,6 +1447,11 @@ already contained in the current fire activity and in the season features.
   \item \textbf{Satellite detection is not ground truth.} Clouds, smoke and pixel
         size all affect what is detected; part of what is labelled
         \enquote{ignition} is re-detection of an existing fire.
+  \item \textbf{Rows are not independent.} Many rows are pixels or cells of the
+        same fire in the same hour, so the effective number of independent test
+        cases is much smaller than the row count. The \sig{} values of the
+        effect-size tables measure seed-to-seed model noise, not this sampling
+        uncertainty; the paired test across monthly folds is the better guide.
   \item \textbf{Weather significance is strong but not definitive}
         ($p=0.020$, above the strict Bonferroni threshold of 0.0167).
   \item \textbf{Daily model issues not fixed at source.} The filtering artefact,
@@ -1485,7 +1496,7 @@ The main lessons are:
 
 \begin{itemize}
   \item \textbf{More years.} Extend GOES-16 to 2020--2024 (about 44{,}600 files,
-        $\sim$76\,GB, a few hours of download). This would test the weather effect
+        $\sim$76\,GB, between about 4 hours and a day of download). This would test the weather effect
         across contrasting years and settle its significance. GOES-19 has since
         replaced GOES-16 as the operational GOES-East satellite, so going beyond
         early 2025 means switching satellite (same product format).
@@ -1680,7 +1691,7 @@ Full-disk decoding & 3.3\,s per file & windowed HDF5 read, 83\,ms \\
 Network drop during download & April 2024 silently missing & retries with backoff \\
 Lags built from observed rows & 1-h lag reached 2\,h back ($\sim$1.6\% of hours) & complete hourly time axis \\
 Missing fire power stored as 0 & model learned a measurement flag & keep missing + flags \\
-28\,km spread target & not physical (7.7\,m/s, random direction) & 2\,km pixels, split target \\
+28\,km spread target & not measuring spread (random direction, implied 7.7\,m/s) & 2\,km pixels, split target \\
 Wind direction convention (daily notebook) & alignment sign possibly inverted & store direction \enquote{to} only \\
 \bottomrule
 \end{tabularx}

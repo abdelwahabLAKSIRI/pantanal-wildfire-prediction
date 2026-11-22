@@ -64,7 +64,6 @@ DATA_DIR = BASE_DIR / "data"                      # this model's own files
 PROJECT_DIR = BASE_DIR.parent                     # shared project inputs
 HOURLY_DATA = PROJECT_DIR / "hourly_model" / "data"   # shared ERA5 + INPE tables
 CACHE_DIR = DATA_DIR / "goes_cache"
-XHWI_FILE = PROJECT_DIR / "xhwi_era5_hourly_2024.nc"
 
 BUCKET = "https://noaa-goes16.s3.amazonaws.com"
 PRODUCT = "ABI-L2-FDCF"
@@ -72,6 +71,18 @@ PRODUCT = "ABI-L2-FDCF"
 LAT_MIN, LAT_MAX = -25.0, -13.0
 LON_MIN, LON_MAX = -60.0, -53.0
 GRID_STEP = 0.25
+
+
+def target_grid() -> tuple[np.ndarray, np.ndarray]:
+    """Cell-centre latitudes and longitudes of the 0.25 deg ERA5 grid (49 x 29).
+
+    Built from the domain bounds rather than read from a file, so the GOES
+    pipeline needs no laboratory-provided input. Identical to the lat/lon axes
+    of ``era5_hourly_2019_2024.nc`` and ``xhwi_era5_hourly_2024.nc``.
+    """
+    lat = np.round(np.arange(LAT_MIN, LAT_MAX + GRID_STEP / 2, GRID_STEP), 4)
+    lon = np.round(np.arange(LON_MIN, LON_MAX + GRID_STEP / 2, GRID_STEP), 4)
+    return lat, lon
 
 _START_RE = re.compile(r"_s(\d{4})(\d{3})(\d{2})(\d{2})(\d{2})")
 
@@ -171,9 +182,7 @@ class Geometry:
         X, Y = np.meshgrid(x_axis[self.cols], y_axis[self.rows])
         lon, lat = gg.scan_to_lonlat(X, Y)
 
-        with xr.open_dataset(XHWI_FILE) as ds:
-            self.cell_lat = ds["lat"].values.astype("float64")
-            self.cell_lon = ds["lon"].values.astype("float64")
+        self.cell_lat, self.cell_lon = target_grid()
 
         inside = (
             np.isfinite(lat) & np.isfinite(lon)
@@ -270,9 +279,6 @@ def main() -> int:
     ap.add_argument("--keep-files", action="store_true",
                     help="keep the raw .nc files instead of deleting after use")
     args = ap.parse_args()
-
-    if not XHWI_FILE.exists():
-        raise SystemExit(f"{XHWI_FILE.name} not found -- it defines the target grid.")
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     session = requests.Session()

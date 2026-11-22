@@ -49,7 +49,7 @@ import requests
 
 import goes_grid as gg
 from build_goes_hourly import (BASE_DIR, CACHE_DIR, DATA_DIR, Geometry,  # noqa: F401
-                               PRODUCT, XHWI_FILE, _max_by_cell, fetch,
+                               PRODUCT, _max_by_cell, fetch,
                                list_day, pick_scans)
 
 

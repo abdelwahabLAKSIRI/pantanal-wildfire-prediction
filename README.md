@@ -27,7 +27,7 @@ Five models, each scored on a later period than the one it was trained on. ROC-A
 
 ![Model scoreboard](report/figures/fig3_scoreboard.png)
 
-**Weather improves only the spread forecast.** Across five monthly forecasts (June–October 2024), adding ERA5 weather to the fire-state features improved spread in every month (+0.012 PR-AUC, t = 3.76, p = 0.020), and added nothing measurable to persistence (p = 0.99) or ignition (p = 0.89). Persistence over one hour follows the fire's own momentum; spread follows wind (it favours the downwind direction and doubles from the calmest to the windiest conditions); ignition follows existing, largely human-set fire activity.
+**Weather improves only the spread forecast.** Across five monthly forecasts (June–October 2024), adding ERA5 weather to the fire-state features improved spread in every month (+0.012 PR-AUC, t = 3.76, p = 0.020), and added nothing measurable to persistence (p = 0.99) or ignition (p = 0.89). The spread result is strong but not conclusive: the folds share training data, three targets were tested (the strict Bonferroni threshold is p < 0.017), and it rests on one year. Persistence over one hour follows the fire's own momentum; spread follows wind (it favours the downwind direction and doubles from the calmest to the windiest conditions); ignition follows existing, largely human-set fire activity.
 
 ## How the project evolved
 
@@ -87,10 +87,13 @@ ERA5 data: generated using Copernicus Climate Change Service information. Neithe
 pip install -r requirements.txt
 ```
 
+Run Stage 1 first: Stages 2–3 reuse its ERA5 file and INPE hotspots.
+
 Stage 1 (run inside `hourly_model/`):
 
 ```bash
 python build_fire_events_hourly.py --years 2019-2024 --states "MATO GROSSO DO SUL,MATO GROSSO"
+python build_fire_events_hourly.py --years 2024     # per-year file used by the GOES figures
 python download_era5_pantanal.py --years 2019-2024
 python build_hourly_dataset.py
 python feature_set_effect_size.py --seeds 5
@@ -108,4 +111,4 @@ python build_goes_split_targets.py --year 2024 --months 1-12
 python train_goes_split.py --period 2024_01-12
 ```
 
-Every script lists its options with `--help`. The walkthrough notebook reads the files these scripts produce; with `RECOMPUTE = True` in its first code cell it re-runs every experiment (about an hour on a laptop).
+Every script lists its options with `--help`. The walkthrough notebook reads the files these scripts produce (sections that need the laboratory's files are skipped without them); with `RECOMPUTE = True` in its first code cell it re-runs every experiment (about 35 minutes on the laptop used for this project).
